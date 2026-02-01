@@ -94,6 +94,12 @@ python agent_bench.py --agent [agent name] --config [config file path]
 # python agent_bench.py --agent my_react_agent --config config.yaml
 ```
 
+### 🛠 Agent Availability
+- ✅ **ReAct** (Ready)
+- ✅ **Reflexion** (Ready)
+- 🚧 **LATS** (Working on...)
+- 🚧 **LLMCompiler** (Working on...)
+
 ## Citation
 ```bibtex
 @inproceedings{kim2026cost,
