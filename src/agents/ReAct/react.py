@@ -10,6 +10,8 @@ from langgraph.graph.state import CompiledStateGraph
 from langgraph.graph.message import add_messages
 from colorama import Fore, Style
 import re
+import time
+from AgentContext import AgentContext
 
 def extract_thoughts_and_actions(input_str):
     stop_boundary = r"(?:\s*Thought:|\s*Action:|\s*Observation:|\Z)"
@@ -91,12 +93,23 @@ def create_react_agent(
                     print(f"Tool {tool['name']} not found.")
                     continue
                 try:
+                    invoke_start_time = time.time()
                     tool_output = tool_dict[tool["name"]].invoke(tool["argument"])
+                    invoke_end_time = time.time()
+                    print(f"Tool {tool['name']} executed in {invoke_end_time - invoke_start_time:.2f} seconds.")
                     if isinstance(tool_output, tuple):
                         tool_output, artifact = tool_output
                     else:
                         artifact = None
                     print(f"Observation: {tool_output}")
+                    tool_context = {
+                        "tool_name": tool["name"],
+                        "tool_argument": tool["argument"],
+                        "tool_output": tool_output,
+                        "tool_invoke_start_time": invoke_start_time,
+                        "tool_invoke_end_time": invoke_end_time,
+                    }
+                    AgentContext.shared.callstack.append(tool_context)
                 except Exception as e:
                     tool_output = f"Tool Execution Error: {e}"
                     print(tool_output)
@@ -120,6 +133,7 @@ def create_react_agent(
                 response += chunk
             else:
                 response = chunk
+        print(Fore.GREEN+Style.BRIGHT+f"Model Response Received: {response}"+Style.RESET_ALL)
         response.content = extract_thoughts_and_actions(response.content)
         print(response.content)
         return {"messages": [response]}

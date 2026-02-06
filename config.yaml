@@ -1,6 +1,6 @@
 # config.yaml
 global:
-  model: "Qwen/Qwen3-14B" 
+  model: "Qwen/Qwen3-14B-FP8" 
   host: localhost
   port: 8000       
   temperature: 0.0                        

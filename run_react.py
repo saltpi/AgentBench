@@ -6,6 +6,7 @@ from colorama import Fore, Style
 from src.agents.ReAct.react import create_react_agent
 from dotenv import load_dotenv
 from langsmith import traceable, trace
+from AgentContext import AgentContext
 
 load_dotenv()
 
@@ -72,6 +73,11 @@ def main(args):
                 messages = [("human", query)]
 
             count += 1
+            AgentContext.shared.clear()
+            AgentContext.shared.extra_info["messages"] = messages
+            AgentContext.shared.extra_info["model"] = model
+            AgentContext.shared.extra_info["tools"] = tools
+            AgentContext.shared.extra_info["workload"] = args.workload
             start_time = time.time()
             try:
                 with trace("ReAct_trace", tags=[args.workload, args.model, "Iteration_limit:"+str(args.iteration_limit)]):
@@ -85,9 +91,15 @@ def main(args):
             except Exception as e:
                 print(Fore.RED + f"Error: {e}"+Style.RESET_ALL)
             end_time = time.time()
+            AgentContext.shared.extra_info["start_time"] = start_time
+            AgentContext.shared.extra_info["end_time"] = end_time
+            AgentContext.shared.extra_info["latency"] = end_time - start_time
             latencies.append(end_time-start_time)
             print(f"Latency: {round(end_time-start_time, 2)} sec")
             pretty_output(i)
+
+            AgentContext.shared.pretty_print()
+            AgentContext.shared.save()
 
     elif args.workload == "webshop":
         from src.tools.webshop_tools.webshop_tools import SearchTool, ClickTool, ResetTool, set_webshop_url
